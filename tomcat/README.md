@@ -1,12 +1,12 @@
 # ApexPOS Server Infrastructure: Node.js & Apache Tomcat
 
 This project provides dual-stack server capabilities:
-1. **Node.js Express Server** (`server.ts`): High-performance modern backend and development server hosting REST APIs on port 3000.
+1. **Node.js Express Server** (`server.ts`): High-performance modern backend and development server hosting REST APIs on port 5173.
 2. **Apache Tomcat Application Server** (`tomcat/`): Jakarta EE / Java Servlet 5.0 / 6.0 & JSP container running with MySQL database pool.
 
 ---
 
-## 1. Node.js Express Server (Port 3000)
+## 1. Node.js Express Server (Port 5173)
 
 ### Development Mode
 ```bash

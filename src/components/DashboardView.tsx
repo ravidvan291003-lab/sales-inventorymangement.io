@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Product, Sale, Customer, User, StockLog } from '../types';
 import { storageService } from '../services/storageService';
 import {
@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   History,
   Download,
+  Server,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -41,7 +42,15 @@ interface DashboardViewProps {
   onViewInvoice: (sale: Sale) => void;
 }
 
-const COLORS = ['#6366F1', '#10B981', '#F59E0B', '#EC4899', '#3B82F6'];
+interface ServerHealth {
+  status: string;
+  server: string;
+  version: string;
+  uptimeSeconds: number;
+  tomcatStatus?: string;
+}
+
+const COLORS = ['#0D9488', '#16A34A', '#F59E0B', '#E11D48', '#2563EB'];
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   currentUser,
@@ -52,6 +61,37 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigate,
   onViewInvoice,
 }) => {
+  const [serverHealth, setServerHealth] = useState<ServerHealth | null>(null);
+  const [isServerReachable, setIsServerReachable] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const refreshServerHealth = async () => {
+      try {
+        const response = await fetch('/api/health');
+        if (!response.ok) throw new Error('Health check failed');
+        const data = (await response.json()) as ServerHealth;
+        if (isMounted) {
+          setServerHealth(data);
+          setIsServerReachable(true);
+        }
+      } catch {
+        if (isMounted) {
+          setServerHealth(null);
+          setIsServerReachable(false);
+        }
+      }
+    };
+
+    refreshServerHealth();
+    const interval = window.setInterval(refreshServerHealth, 10000);
+    return () => {
+      isMounted = false;
+      window.clearInterval(interval);
+    };
+  }, []);
+
   // Aggregate Key Metrics
   const totalRevenue = useMemo(() => {
     return sales.reduce((acc, s) => acc + s.totalAmount, 0);
@@ -165,14 +205,35 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <ShoppingCart className="w-3.5 h-3.5 mr-1.5" />
             Launch POS Register
           </button>
-          <button
-            onClick={() => onNavigate('java_architecture')}
-            className="inline-flex items-center px-3.5 py-2 border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg shadow-2xs transition-colors"
-          >
-            <TrendingUp className="w-3.5 h-3.5 mr-1.5 text-indigo-600" />
-            Architecture Flow & Code
-          </button>
         </div>
+      </div>
+
+      {/* Live Node.js server status */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-sm text-white">
+        <div className="flex items-center gap-3">
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${isServerReachable ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}`}>
+            <Server className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold">Application Server</h2>
+              <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase ${isServerReachable ? 'text-emerald-300' : 'text-rose-300'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isServerReachable ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                {isServerReachable ? 'Online' : 'Offline'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">
+              {serverHealth?.server || 'Node.js Express'} · Port 5173 · {serverHealth ? `${serverHealth.uptimeSeconds}s uptime` : 'Checking connection...'}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => onNavigate('java_architecture')}
+          className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 transition-colors"
+        >
+          <Server className="w-3.5 h-3.5" />
+          Open Server Studio
+        </button>
       </div>
 
       {/* KPI Stats Grid */}
@@ -181,7 +242,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Gross Sales</span>
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
@@ -198,7 +259,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Net Margin</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
@@ -231,7 +292,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Registered Clients</span>
-            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
               <Users className="w-4 h-4" />
             </div>
           </div>
@@ -265,8 +326,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <AreaChart data={salesTrendData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366F1" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#6366F1" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#0D9488" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#0D9488" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
@@ -290,7 +351,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <Area
                   type="monotone"
                   dataKey="sales"
-                  stroke="#6366F1"
+                  stroke="#0D9488"
                   strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#colorSales)"

@@ -25,7 +25,6 @@ import {
   BarChart3,
   Boxes,
   ShieldCheck,
-  Code2,
   Bell,
   LogOut,
   UserCheck,
@@ -37,7 +36,6 @@ import {
   ShieldAlert,
   History,
   HardDrive,
-  Server,
 } from 'lucide-react';
 
 export default function App() {
@@ -95,7 +93,6 @@ export default function App() {
     { id: 'reports' as AppView, label: 'Reports', icon: BarChart3, permissionKey: 'viewReports' as PermissionKey },
     { id: 'users' as AppView, label: 'User Roles & Rules', icon: ShieldCheck, permissionKey: 'viewUsers' as PermissionKey },
     { id: 'audit_logs' as AppView, label: 'Audit & Backup', icon: History, permissionKey: 'viewAuditLogs' as PermissionKey },
-    { id: 'java_architecture' as AppView, label: 'Node.js & Tomcat Studio', icon: Code2, special: true },
   ], [lowStockCount, permissionsVersion]);
 
   const handleSwitchUser = (user: User) => {
@@ -149,17 +146,6 @@ export default function App() {
                 </div>
               </button>
 
-              {/* Node.js & Tomcat Server Studio Quick Tag */}
-              <button
-                id="header-java-tag-btn"
-                onClick={() => setCurrentView('java_architecture')}
-                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-colors"
-                title="Node.js Express & Apache Tomcat 10 Server Studio"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <Server className="w-3.5 h-3.5 text-emerald-600" />
-                Node.js &amp; Tomcat Server
-              </button>
             </div>
 
             {/* Right Controls: User Profile, Session, Alerts */}

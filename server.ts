@@ -4,7 +4,7 @@ import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 
 const app = express();
-const PORT = 3000;
+const PORT = 5173;
 const HOST = '0.0.0.0';
 
 // In-memory data store for server-side persistence & API synchronization
